@@ -1,0 +1,811 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>HIGH PRIESTESS — Ops</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;1,400&family=Montserrat:wght@300;400;500&display=swap" rel="stylesheet" />
+
+  <style>
+    /* ─── Brand Tokens ─── */
+    :root {
+      --noir:   #371F1D;
+      --smoke:  #DFD8CF;
+      --portal: #C5C59F;
+      --ash:    #BE5B2C;
+      --blush:  #8D4C52;
+
+      --bg:         #1e1210;
+      --bg-card:    #2a1815;
+      --bg-input:   #301c19;
+      --border:     rgba(223, 216, 207, 0.12);
+      --border-hi:  rgba(190, 91, 44, 0.5);
+      --text-pri:   #DFD8CF;
+      --text-sec:   rgba(223, 216, 207, 0.55);
+      --text-ter:   rgba(223, 216, 207, 0.35);
+
+      --font-display: 'Cormorant Garamond', Georgia, serif;
+      --font-body:    'Montserrat', sans-serif;
+
+      --radius-sm: 6px;
+      --radius-md: 10px;
+      --radius-lg: 14px;
+    }
+
+    /* ─── Reset ─── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { font-size: 16px; }
+    body {
+      background: var(--bg);
+      color: var(--text-pri);
+      font-family: var(--font-body);
+      font-weight: 400;
+      min-height: 100vh;
+      padding: 0 0 4rem;
+    }
+    a { color: var(--ash); }
+    input, textarea, select, button { font-family: var(--font-body); }
+
+    /* ─── Layout ─── */
+    .page { max-width: 900px; margin: 0 auto; padding: 0 1.5rem; }
+
+    /* ─── Header ─── */
+    .site-header {
+      border-bottom: 0.5px solid var(--border);
+      padding: 1.5rem 0 1.25rem;
+      margin-bottom: 2rem;
+    }
+    .site-header .inner { display: flex; align-items: baseline; justify-content: space-between; gap: 1rem; flex-wrap: wrap; }
+    .wordmark {
+      font-family: var(--font-display);
+      font-size: 1.5rem;
+      font-weight: 500;
+      letter-spacing: 0.12em;
+      color: var(--smoke);
+    }
+    .wordmark span { color: var(--ash); }
+    .live-time { font-size: 0.75rem; color: var(--text-sec); letter-spacing: 0.06em; }
+
+    /* ─── Section Label ─── */
+    .sec-label {
+      font-size: 0.625rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--text-ter);
+      font-weight: 500;
+      margin-bottom: 0.75rem;
+    }
+
+    /* ─── Day Banner ─── */
+    .day-banner {
+      border-left: 3px solid var(--ash);
+      padding: 0.875rem 1.25rem;
+      background: var(--bg-card);
+      border-radius: 0 var(--radius-md) var(--radius-md) 0;
+      margin-bottom: 1.25rem;
+    }
+    .day-anchor {
+      font-family: var(--font-display);
+      font-size: 1.75rem;
+      font-weight: 500;
+      color: var(--smoke);
+      line-height: 1.1;
+    }
+    .day-sub { font-size: 0.75rem; color: var(--text-sec); margin-top: 0.25rem; }
+
+    /* ─── Current Block ─── */
+    .cur-block {
+      background: var(--bg-card);
+      border: 0.5px solid var(--border-hi);
+      border-radius: var(--radius-lg);
+      padding: 1.25rem 1.5rem;
+      margin-bottom: 1.25rem;
+      position: relative;
+      overflow: hidden;
+    }
+    .cur-block::before {
+      content: '';
+      position: absolute;
+      left: 0; top: 0; bottom: 0;
+      width: 3px;
+      background: var(--ash);
+    }
+    .cur-meta {
+      display: flex; align-items: center; gap: 0.4rem;
+      font-size: 0.625rem; letter-spacing: 0.1em; text-transform: uppercase;
+      color: var(--text-ter); margin-bottom: 0.5rem;
+    }
+    .live-dot {
+      width: 6px; height: 6px; border-radius: 50%;
+      background: #5a9e5a; flex-shrink: 0;
+    }
+    .cur-name {
+      font-family: var(--font-display);
+      font-size: 1.5rem; font-weight: 500;
+      color: var(--smoke); margin-bottom: 0.25rem;
+    }
+    .cur-action { font-size: 0.875rem; color: var(--text-sec); line-height: 1.5; }
+    .cur-time   { font-size: 0.75rem;  color: var(--text-ter); margin-top: 0.4rem; }
+
+    /* ─── Schedule Strip ─── */
+    .sched-strip {
+      display: flex; gap: 6px; flex-wrap: wrap;
+      margin-bottom: 2rem;
+    }
+    .sched-block {
+      flex: 1; min-width: 80px;
+      padding: 0.5rem 0.625rem;
+      background: var(--bg-card);
+      border: 0.5px solid var(--border);
+      border-radius: var(--radius-sm);
+      cursor: default;
+      transition: border-color 0.2s;
+    }
+    .sched-block.active {
+      border-color: var(--ash);
+      background: #301c19;
+    }
+    .sched-block.past { opacity: 0.45; }
+    .sched-t { font-size: 0.625rem; color: var(--text-ter); margin-bottom: 2px; }
+    .sched-n { font-size: 0.75rem;  font-weight: 500; color: var(--text-sec); }
+    .sched-block.active .sched-n { color: var(--smoke); }
+
+    /* ─── Metrics Row ─── */
+    .metrics-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-bottom: 2rem;
+    }
+    @media (max-width: 560px) { .metrics-row { grid-template-columns: 1fr; } }
+
+    .metric-card {
+      background: var(--bg-card);
+      border: 0.5px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 1.25rem;
+    }
+    .metric-card .sec-label { margin-bottom: 1rem; }
+
+    /* Doors */
+    .doors-row { display: flex; align-items: center; gap: 1rem; }
+    .doors-num {
+      font-family: var(--font-display);
+      font-size: 3rem; font-weight: 500;
+      color: var(--smoke); line-height: 1;
+      min-width: 2.5rem;
+    }
+    .doors-right { flex: 1; }
+    .doors-goal { font-size: 0.75rem; color: var(--text-sec); margin-bottom: 0.5rem; }
+    .cnt-btns { display: flex; gap: 6px; margin-bottom: 0.75rem; }
+    .cnt-btn {
+      width: 28px; height: 28px;
+      border-radius: var(--radius-sm);
+      border: 0.5px solid var(--border);
+      background: var(--bg-input);
+      color: var(--text-pri);
+      font-size: 1.1rem; line-height: 1;
+      cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      transition: border-color 0.15s, background 0.15s;
+    }
+    .cnt-btn:hover { border-color: var(--ash); background: #3a1f1c; }
+    .progress-track {
+      height: 3px; background: var(--border);
+      border-radius: 2px; overflow: hidden;
+    }
+    .progress-fill {
+      height: 100%; background: var(--ash);
+      border-radius: 2px; transition: width 0.35s ease;
+    }
+    .progress-label { font-size: 0.625rem; color: var(--text-ter); margin-top: 0.3rem; }
+
+    /* Cold List */
+    .cold-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 6px; margin-bottom: 1rem; }
+    .cold-stat { text-align: center; }
+    .cold-input {
+      width: 100%; text-align: center;
+      font-family: var(--font-display);
+      font-size: 1.75rem; font-weight: 500;
+      color: var(--smoke);
+      background: transparent;
+      border: none;
+      border-bottom: 1px solid var(--border);
+      padding: 2px 0;
+      outline: none;
+      transition: border-color 0.15s;
+    }
+    .cold-input:focus { border-bottom-color: var(--ash); }
+    /* hide number input arrows */
+    .cold-input::-webkit-inner-spin-button,
+    .cold-input::-webkit-outer-spin-button { -webkit-appearance: none; }
+    .cold-input[type=number] { -moz-appearance: textfield; }
+
+    .cold-lbl { font-size: 0.625rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-ter); margin-top: 4px; }
+    .cold-status-lbl { font-size: 0.7rem; color: var(--text-sec); margin-bottom: 0.375rem; }
+    .styled-select {
+      width: 100%;
+      font-size: 0.75rem;
+      padding: 0.4rem 0.625rem;
+      border-radius: var(--radius-sm);
+      border: 0.5px solid var(--border);
+      background: var(--bg-input);
+      color: var(--text-pri);
+      cursor: pointer;
+      outline: none;
+      transition: border-color 0.15s;
+      appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%238D4C52'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 0.625rem center;
+      padding-right: 1.5rem;
+    }
+    .styled-select:focus { border-color: var(--ash); }
+
+    /* ─── Branches ─── */
+    .branches-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-bottom: 2rem;
+    }
+    @media (max-width: 560px) { .branches-grid { grid-template-columns: 1fr; } }
+
+    .branch-card {
+      background: var(--bg-card);
+      border: 0.5px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 1.125rem 1.25rem;
+    }
+    .branch-tag {
+      display: inline-block;
+      font-size: 0.5625rem; letter-spacing: 0.08em; text-transform: uppercase;
+      font-weight: 500;
+      padding: 2px 8px;
+      border-radius: var(--radius-sm);
+      margin-bottom: 0.75rem;
+    }
+    .tag-dist    { background: rgba(190, 91, 44,  0.18); color: #d47a55; }
+    .tag-b2b     { background: rgba(197, 197, 159, 0.15); color: #b0b087; }
+    .tag-consult { background: rgba(141, 76, 82,  0.2);  color: #b87880; }
+    .tag-dtc     { background: rgba(55, 31, 29,   0.6);  border: 0.5px solid var(--border); color: var(--text-sec); }
+
+    .branch-next-lbl {
+      font-size: 0.5625rem; letter-spacing: 0.08em; text-transform: uppercase;
+      color: var(--text-ter); margin-bottom: 0.3rem;
+    }
+    .branch-next {
+      font-size: 0.75rem; color: var(--text-sec); line-height: 1.6;
+      margin-bottom: 0.875rem;
+    }
+    .branch-textarea {
+      width: 100%;
+      background: var(--bg-input);
+      border: 0.5px solid var(--border);
+      border-radius: var(--radius-sm);
+      color: var(--text-pri);
+      font-size: 0.75rem;
+      line-height: 1.6;
+      padding: 0.5rem 0.625rem;
+      resize: vertical;
+      outline: none;
+      transition: border-color 0.15s;
+      min-height: 70px;
+    }
+    .branch-textarea:focus { border-color: var(--ash); }
+    .branch-textarea::placeholder { color: var(--text-ter); }
+
+    /* ─── Checklist ─── */
+    .checklist-card {
+      background: var(--bg-card);
+      border: 0.5px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 1.25rem;
+      margin-bottom: 2rem;
+    }
+    .cl-header {
+      display: flex; align-items: center; justify-content: space-between;
+      flex-wrap: wrap; gap: 0.5rem;
+      margin-bottom: 1rem;
+    }
+    .cl-title {
+      font-family: var(--font-display);
+      font-size: 1.125rem; font-weight: 500;
+      color: var(--smoke);
+    }
+    .cl-badge {
+      font-size: 0.625rem; letter-spacing: 0.06em;
+      padding: 3px 8px;
+      background: rgba(190, 91, 44, 0.2);
+      color: #d47a55;
+      border-radius: var(--radius-sm);
+    }
+    .cl-item {
+      display: flex; align-items: flex-start; gap: 0.625rem;
+      padding: 0.5rem 0;
+      border-bottom: 0.5px solid var(--border);
+      cursor: pointer;
+    }
+    .cl-item:last-child { border-bottom: none; padding-bottom: 0; }
+    .cl-cb {
+      width: 15px; height: 15px;
+      margin-top: 1px; flex-shrink: 0;
+      accent-color: var(--ash);
+      cursor: pointer;
+    }
+    .cl-text { font-size: 0.8125rem; color: var(--text-pri); line-height: 1.5; }
+    .cl-text.done { color: var(--text-ter); text-decoration: line-through; }
+    .cl-reset {
+      margin-top: 0.875rem;
+      font-size: 0.6875rem; color: var(--text-ter);
+      background: none; border: none; cursor: pointer;
+      text-decoration: underline; padding: 0;
+    }
+    .cl-reset:hover { color: var(--text-sec); }
+
+    /* ─── Week Row ─── */
+    .week-row {
+      display: flex; gap: 6px; flex-wrap: wrap;
+      margin-bottom: 2rem;
+    }
+    .week-day {
+      flex: 1; min-width: 70px;
+      padding: 0.625rem 0.75rem;
+      background: var(--bg-card);
+      border: 0.5px solid var(--border);
+      border-radius: var(--radius-sm);
+    }
+    .week-day.today { border-color: var(--ash); }
+    .wd-name {
+      font-size: 0.5625rem; letter-spacing: 0.1em; text-transform: uppercase;
+      color: var(--text-ter); margin-bottom: 0.25rem;
+    }
+    .week-day.today .wd-name { color: var(--ash); }
+    .wd-focus { font-size: 0.6875rem; font-weight: 500; color: var(--text-sec); }
+    .week-day.today .wd-focus { color: var(--smoke); }
+
+    /* ─── Footer ─── */
+    .site-footer {
+      border-top: 0.5px solid var(--border);
+      padding-top: 1.25rem;
+      font-size: 0.625rem;
+      color: var(--text-ter);
+      letter-spacing: 0.06em;
+      text-align: center;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="page">
+
+    <!-- Header -->
+    <header class="site-header">
+      <div class="inner">
+        <div class="wordmark">HIGH <span>PRIESTESS</span></div>
+        <div class="live-time" id="live-time">—</div>
+      </div>
+    </header>
+
+    <!-- Day Banner -->
+    <div class="day-banner">
+      <div class="sec-label">today's anchor</div>
+      <div class="day-anchor" id="day-anchor">—</div>
+      <div class="day-sub"   id="day-sub">—</div>
+    </div>
+
+    <!-- Current Block -->
+    <div class="cur-block">
+      <div class="cur-meta"><span class="live-dot"></span>current block</div>
+      <div class="cur-name"   id="cur-name">—</div>
+      <div class="cur-action" id="cur-action">—</div>
+      <div class="cur-time"   id="cur-time"></div>
+    </div>
+
+    <!-- Schedule Strip -->
+    <div class="sec-label">daily blocks</div>
+    <div class="sched-strip" id="sched-strip"></div>
+
+    <!-- Metrics -->
+    <div class="sec-label">live metrics</div>
+    <div class="metrics-row">
+
+      <!-- Doors -->
+      <div class="metric-card">
+        <div class="sec-label">active dispensary doors</div>
+        <div class="doors-row">
+          <div class="doors-num" id="doors-num">4</div>
+          <div class="doors-right">
+            <div class="doors-goal">goal: 25 doors</div>
+            <div class="cnt-btns">
+              <button class="cnt-btn" id="doors-minus" aria-label="Remove door">−</button>
+              <button class="cnt-btn" id="doors-plus"  aria-label="Add door">+</button>
+            </div>
+            <div class="progress-track">
+              <div class="progress-fill" id="doors-bar"></div>
+            </div>
+            <div class="progress-label" id="doors-pct">—</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Cold List -->
+      <div class="metric-card">
+        <div class="sec-label">cold list — email + sms</div>
+        <div class="cold-grid">
+          <div class="cold-stat">
+            <input class="cold-input" id="cl-total"   type="number" value="0" min="0" inputmode="numeric" />
+            <div class="cold-lbl">total</div>
+          </div>
+          <div class="cold-stat">
+            <input class="cold-input" id="cl-sent"    type="number" value="0" min="0" inputmode="numeric" />
+            <div class="cold-lbl">sent</div>
+          </div>
+          <div class="cold-stat">
+            <input class="cold-input" id="cl-replied" type="number" value="0" min="0" inputmode="numeric" />
+            <div class="cold-lbl">replied</div>
+          </div>
+        </div>
+        <div class="cold-status-lbl">reintro status</div>
+        <select class="styled-select" id="cl-status">
+          <option>not started</option>
+          <option>draft in progress</option>
+          <option>ready to send</option>
+          <option>sent — monitoring</option>
+          <option>segmented + in flows</option>
+        </select>
+      </div>
+
+    </div>
+
+    <!-- Branches -->
+    <div class="sec-label">four branches — priorities + notes</div>
+    <div class="branches-grid">
+
+      <div class="branch-card">
+        <span class="branch-tag tag-dist">distribution</span>
+        <div class="branch-next-lbl">standing next action</div>
+        <div class="branch-next">Revelry deck — segment by NYC / Upstate / Other. Run warm email sequence. One upstate trip every 6 weeks.</div>
+        <div class="branch-next-lbl">notes</div>
+        <textarea class="branch-textarea" id="note-dist" placeholder="priority, blockers, what's moving..."></textarea>
+      </div>
+
+      <div class="branch-card">
+        <span class="branch-tag tag-b2b">b2b white-label</span>
+        <div class="branch-next-lbl">standing next action</div>
+        <div class="branch-next">Thu GM meeting — CMS + sell sheet. Ask questions, don't close. No signatures. Draft broker term sheet after.</div>
+        <div class="branch-next-lbl">notes</div>
+        <textarea class="branch-textarea" id="note-b2b" placeholder="priority, blockers, what's moving..."></textarea>
+      </div>
+
+      <div class="branch-card">
+        <span class="branch-tag tag-consult">consulting</span>
+        <div class="branch-next-lbl">standing next action</div>
+        <div class="branch-next">Sharpen positioning — "I help women break into cannabis." Draft one-pager. Sketch workshop offer + price point.</div>
+        <div class="branch-next-lbl">notes</div>
+        <textarea class="branch-textarea" id="note-consult" placeholder="priority, blockers, what's moving..."></textarea>
+      </div>
+
+      <div class="branch-card">
+        <span class="branch-tag tag-dtc">dtc + community</span>
+        <div class="branch-next-lbl">standing next action</div>
+        <div class="branch-next">Write the one piece in your head. Substack or LinkedIn. AuDHD + cannabis + portal. One piece, not a plan.</div>
+        <div class="branch-next-lbl">notes</div>
+        <textarea class="branch-textarea" id="note-dtc" placeholder="priority, blockers, what's moving..."></textarea>
+      </div>
+
+    </div>
+
+    <!-- Thursday Checklist -->
+    <div class="checklist-card">
+      <div class="cl-header">
+        <div class="cl-title">Thursday GM prep</div>
+        <span class="cl-badge">Apr 9 · broker meeting</span>
+      </div>
+      <div id="cl-items"></div>
+      <button class="cl-reset" id="cl-reset">reset checklist</button>
+    </div>
+
+    <!-- Week -->
+    <div class="sec-label">this week</div>
+    <div class="week-row" id="week-row"></div>
+
+    <!-- Footer -->
+    <footer class="site-footer">
+      HIGH PRIESTESS WELLNESS · OCM-PROC-24-000215 · OCM-DIST-25-000191
+    </footer>
+
+  </div><!-- /page -->
+
+  <script>
+    // ─── Config ──────────────────────────────────────────────────────────────
+
+    const BLOCKS = [
+      { id:'body',   start: 600, end: 690,  label: 'Body',        action: 'Workout. Protected. Non-negotiable.' },
+      { id:'intake', start: 690, end: 720,  label: 'Intake',      action: 'Triage messages. Decide what gets peak hours.' },
+      { id:'deep',   start: 720, end: 840,  label: 'Deep work',   action: null },
+      { id:'fire',   start: 840, end: 900,  label: 'Fire window', action: 'METRC, compliance surprises, ops fires. Contains the day.' },
+      { id:'ops',    start: 900, end: 990,  label: 'Ops block',   action: 'Emails, follow-ups, vendor comms, order processing.' },
+      { id:'second', start: 990, end: 1110, label: 'Second wind', action: 'Content drafts, brand thinking, Substack.' },
+    ];
+
+    const DEEP_BY_DAY = [
+      'Sales outreach — Revelry deck, LinkedIn, upstate calls',  // Mon
+      'Content — write one piece, any platform',                 // Tue
+      'Ops / compliance — METRC, SOPs, production',              // Wed
+      'Business development — meetings, broker conversations',   // Thu
+      'Review + next week prep',                                 // Fri
+      null, null,                                                // Sat, Sun
+    ];
+
+    const WEEK = [
+      { s:'Mon', f:'Sales outreach' },
+      { s:'Tue', f:'Content' },
+      { s:'Wed', f:'Ops / compliance' },
+      { s:'Thu', f:'Biz dev' },
+      { s:'Fri', f:'Review + prep' },
+      { s:'Sat', f:'Rest' },
+      { s:'Sun', f:'Rest' },
+    ];
+
+    const DAY_TYPES = [
+      'Monday — sales day',
+      'Tuesday — content day',
+      'Wednesday — ops day',
+      'Thursday — biz dev day',
+      'Friday — review day',
+      'Saturday — rest',
+      'Sunday — rest',
+    ];
+
+    const THU_ITEMS = [
+      { id:'t1', text: 'Confirm he is acting as broker, not buyer' },
+      { id:'t2', text: 'Bring current menu sheet (CMS)' },
+      { id:'t3', text: 'Bring sell sheet with sell-through proof' },
+      { id:'t4', text: 'Run 15% gross margin math before you walk in' },
+      { id:'t5', text: 'Ask: how many accounts, which markets, exclusive or not' },
+      { id:'t6', text: 'Ask: timeline expectation to first placement' },
+      { id:'t7', text: 'No signing anything today — first meeting only' },
+    ];
+
+    const LS_KEY = 'hp_ops_v1';
+
+    // ─── State ────────────────────────────────────────────────────────────────
+
+    function loadState() {
+      try {
+        const raw = localStorage.getItem(LS_KEY);
+        return raw ? JSON.parse(raw) : {};
+      } catch { return {}; }
+    }
+
+    function saveState(s) {
+      try { localStorage.setItem(LS_KEY, JSON.stringify(s)); } catch {}
+    }
+
+    let state = loadState();
+
+    function get(key, fallback) {
+      return state[key] !== undefined ? state[key] : fallback;
+    }
+
+    function set(key, val) {
+      state[key] = val;
+      saveState(state);
+    }
+
+    // ─── Time Helpers ─────────────────────────────────────────────────────────
+
+    function toMins(d) { return d.getHours() * 60 + d.getMinutes(); }
+
+    function fmt12(mins) {
+      const h = Math.floor(mins / 60);
+      const m = mins % 60;
+      const ampm = h >= 12 ? 'PM' : 'AM';
+      const h12 = h % 12 || 12;
+      return `${h12}:${String(m).padStart(2,'0')} ${ampm}`;
+    }
+
+    function currentBlock(mins) {
+      for (const b of BLOCKS) {
+        if (mins >= b.start && mins < b.end) return b;
+      }
+      return null;
+    }
+
+    // ─── Clock ────────────────────────────────────────────────────────────────
+
+    function updateClock() {
+      const now = new Date();
+      document.getElementById('live-time').textContent =
+        now.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', second: '2-digit' });
+    }
+
+    // ─── Day Banner ───────────────────────────────────────────────────────────
+
+    function renderDayBanner() {
+      const now = new Date();
+      const dayIdx = (now.getDay() + 6) % 7; // 0=Mon
+      document.getElementById('day-anchor').textContent = DAY_TYPES[dayIdx];
+      document.getElementById('day-sub').textContent =
+        now.toLocaleDateString('en-US', { weekday:'long', month:'long', day:'numeric', year:'numeric' });
+    }
+
+    // ─── Current Block ────────────────────────────────────────────────────────
+
+    function renderCurrentBlock() {
+      const now = new Date();
+      const dayIdx = (now.getDay() + 6) % 7;
+      const mins = toMins(now);
+      const block = currentBlock(mins);
+
+      const nameEl   = document.getElementById('cur-name');
+      const actionEl = document.getElementById('cur-action');
+      const timeEl   = document.getElementById('cur-time');
+
+      if (!block) {
+        nameEl.textContent   = mins < BLOCKS[0].start ? 'Before blocks' : 'After blocks';
+        actionEl.textContent = mins < BLOCKS[0].start
+          ? 'Workout window starts at 10 AM.'
+          : 'Day complete. Rest.';
+        timeEl.textContent = '';
+        return;
+      }
+
+      nameEl.textContent = block.label;
+
+      const action = block.id === 'deep'
+        ? (DEEP_BY_DAY[dayIdx] || 'Deep work')
+        : block.action;
+      actionEl.textContent = action || '';
+
+      const bi   = BLOCKS.indexOf(block);
+      const next = BLOCKS[bi + 1];
+      timeEl.textContent = fmt12(block.start) + (next ? ' → ' + fmt12(next.start) : '');
+    }
+
+    // ─── Schedule Strip ───────────────────────────────────────────────────────
+
+    function renderSchedule() {
+      const mins  = toMins(new Date());
+      const strip = document.getElementById('sched-strip');
+      strip.innerHTML = '';
+
+      BLOCKS.forEach(b => {
+        const isActive = mins >= b.start && mins < b.end;
+        const isPast   = mins >= b.end;
+        const div = document.createElement('div');
+        div.className = 'sched-block' +
+          (isActive ? ' active' : '') +
+          (isPast   ? ' past'   : '');
+        div.innerHTML = `
+          <div class="sched-t">${fmt12(b.start)}</div>
+          <div class="sched-n">${b.label}</div>
+        `;
+        strip.appendChild(div);
+      });
+    }
+
+    // ─── Doors Counter ────────────────────────────────────────────────────────
+
+    function renderDoors() {
+      const doors = get('doors', 4);
+      const pct   = Math.min(100, Math.round(doors / 25 * 100));
+      document.getElementById('doors-num').textContent = doors;
+      document.getElementById('doors-bar').style.width = pct + '%';
+      document.getElementById('doors-pct').textContent = `${doors} of 25 · ${pct}%`;
+    }
+
+    function initDoors() {
+      renderDoors();
+      document.getElementById('doors-plus').addEventListener('click', () => {
+        set('doors', Math.min(99, get('doors', 4) + 1));
+        renderDoors();
+      });
+      document.getElementById('doors-minus').addEventListener('click', () => {
+        set('doors', Math.max(0, get('doors', 4) - 1));
+        renderDoors();
+      });
+    }
+
+    // ─── Cold List ────────────────────────────────────────────────────────────
+
+    function initColdList() {
+      const fields = ['cl-total','cl-sent','cl-replied'];
+      fields.forEach(id => {
+        const el = document.getElementById(id);
+        el.value = get(id.replace('-','_'), 0);
+        el.addEventListener('change', () => {
+          set(id.replace('-','_'), parseInt(el.value) || 0);
+        });
+      });
+
+      const sel = document.getElementById('cl-status');
+      sel.value = get('cl_status', 'not started');
+      sel.addEventListener('change', () => set('cl_status', sel.value));
+    }
+
+    // ─── Branch Notes ─────────────────────────────────────────────────────────
+
+    function initNotes() {
+      ['dist','b2b','consult','dtc'].forEach(k => {
+        const el = document.getElementById('note-' + k);
+        el.value = get('note_' + k, '');
+        el.addEventListener('blur', () => set('note_' + k, el.value));
+      });
+    }
+
+    // ─── Thursday Checklist ───────────────────────────────────────────────────
+
+    function renderChecklist() {
+      const container = document.getElementById('cl-items');
+      const saved = get('thu', {});
+      container.innerHTML = '';
+
+      THU_ITEMS.forEach(item => {
+        const checked = !!saved[item.id];
+        const row = document.createElement('div');
+        row.className = 'cl-item';
+        row.innerHTML = `
+          <input type="checkbox" class="cl-cb" id="${item.id}" ${checked ? 'checked' : ''} />
+          <label for="${item.id}" class="cl-text${checked ? ' done' : ''}">${item.text}</label>
+        `;
+        const cb  = row.querySelector('input');
+        const lbl = row.querySelector('label');
+        cb.addEventListener('change', () => {
+          saved[item.id] = cb.checked;
+          lbl.className  = 'cl-text' + (cb.checked ? ' done' : '');
+          set('thu', saved);
+        });
+        container.appendChild(row);
+      });
+    }
+
+    function initChecklist() {
+      renderChecklist();
+      document.getElementById('cl-reset').addEventListener('click', () => {
+        if (confirm('Reset all checklist items?')) {
+          set('thu', {});
+          renderChecklist();
+        }
+      });
+    }
+
+    // ─── Week Row ─────────────────────────────────────────────────────────────
+
+    function renderWeek() {
+      const dayIdx = (new Date().getDay() + 6) % 7;
+      const row = document.getElementById('week-row');
+      row.innerHTML = '';
+      WEEK.forEach((w, i) => {
+        const d = document.createElement('div');
+        d.className = 'week-day' + (i === dayIdx ? ' today' : '');
+        d.innerHTML = `<div class="wd-name">${w.s}</div><div class="wd-focus">${w.f}</div>`;
+        row.appendChild(d);
+      });
+    }
+
+    // ─── Tick ─────────────────────────────────────────────────────────────────
+
+    function tick() {
+      updateClock();
+      renderCurrentBlock();
+      renderSchedule();
+    }
+
+    // ─── Init ─────────────────────────────────────────────────────────────────
+
+    renderDayBanner();
+    renderWeek();
+    initDoors();
+    initColdList();
+    initNotes();
+    initChecklist();
+    tick();
+
+    setInterval(tick, 1000);
+  </script>
+</body>
+</html>
